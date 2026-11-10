@@ -3,6 +3,9 @@ import game_framework
 
 MIN_SPEED = 120.0
 MAX_SPEED = 200.0
+FRAME_COUNT = 14
+FLAP_CYCLES_PER_SECOND = 1.0
+FRAMES_PER_SECOND = FRAME_COUNT * FLAP_CYCLES_PER_SECOND
 
 
 class Bird:
@@ -16,6 +19,7 @@ class Bird:
         self.height = width * (Bird.image.h / 3) / (Bird.image.w / 5)
         self.speed = MIN_SPEED
         self.direction = 1
+        self.frame = 0.0
 
     def update(self):
         dt = game_framework.frame_time
@@ -29,11 +33,17 @@ class Bird:
         phase = (phase + self.speed * dt) % (2 * span)
         self.x = left + (phase if phase < span else 2 * span - phase)
         self.direction = 1 if phase < span else -1
+        self.frame = (self.frame + FRAMES_PER_SECOND * dt) % FRAME_COUNT
 
     def draw(self):
-        cell_width = self.image.w // 5
-        cell_height = self.image.h // 3
-        self.image.clip_composite_draw(0, self.image.h - cell_height,
-                             cell_width, cell_height,
+        column = int(self.frame) % 5
+        row = int(self.frame) // 5
+        # Round each edge independently: the sheet is not evenly divisible.
+        left = round(column * self.image.w / 5)
+        right = round((column + 1) * self.image.w / 5)
+        top = round(row * self.image.h / 3)
+        bottom = round((row + 1) * self.image.h / 3)
+        self.image.clip_composite_draw(left, self.image.h - bottom,
+                             right - left, bottom - top,
                              0, '' if self.direction == 1 else 'h',
                              self.x, self.y, self.width, self.height)

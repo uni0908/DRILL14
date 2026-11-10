@@ -1,4 +1,4 @@
-from pico2d import load_image
+from pico2d import load_image, get_canvas_width
 import game_framework
 
 MIN_SPEED = 120.0
@@ -18,11 +18,22 @@ class Bird:
         self.direction = 1
 
     def update(self):
-        self.x += self.direction * self.speed * game_framework.frame_time
+        dt = game_framework.frame_time
+        if dt <= 0:
+            return
+        left = self.width / 2
+        span = get_canvas_width() - self.width
+        # Unfold the reflected path, then fold it back into the screen.
+        offset = self.x - left
+        phase = offset if self.direction == 1 else 2 * span - offset
+        phase = (phase + self.speed * dt) % (2 * span)
+        self.x = left + (phase if phase < span else 2 * span - phase)
+        self.direction = 1 if phase < span else -1
 
     def draw(self):
         cell_width = self.image.w // 5
         cell_height = self.image.h // 3
-        self.image.clip_draw(0, self.image.h - cell_height,
+        self.image.clip_composite_draw(0, self.image.h - cell_height,
                              cell_width, cell_height,
+                             0, '' if self.direction == 1 else 'h',
                              self.x, self.y, self.width, self.height)

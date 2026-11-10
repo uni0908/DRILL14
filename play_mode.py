@@ -4,6 +4,12 @@ import game_framework
 from boy import Boy
 from grass import Grass
 from bird import Bird
+from bird import MIN_SPEED, MAX_SPEED, FRAME_COUNT
+from random import uniform, randrange
+
+BIRD_COUNT = 10
+MIN_BIRD_WIDTH = 64
+MAX_BIRD_WIDTH = 88
 
 boy = None
 
@@ -31,7 +37,14 @@ def init():
     grass = Grass()
     game_world.add_oject(grass, 0)
 
-    game_world.add_oject(Bird())
+    section_width = get_canvas_width() / BIRD_COUNT
+    for index in range(BIRD_COUNT):
+        bird = Bird((index + 0.5) * section_width,
+                    uniform(430, 550), uniform(MIN_BIRD_WIDTH, MAX_BIRD_WIDTH))
+        bird.speed = uniform(MIN_SPEED, MAX_SPEED)
+        bird.direction = 1 if index % 2 == 0 else -1
+        bird.frame = float(randrange(FRAME_COUNT))
+        game_world.add_oject(bird)
 
 
 def pause():
